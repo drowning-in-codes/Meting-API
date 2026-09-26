@@ -1,4 +1,6 @@
 import config from './config.js'
+import { resolve } from './service/api.js'
+import demoService from './service/demo.js'
 
 /**
  * 纯函数:把请求路径解析为路由描述,供 router 与测试复用。
@@ -22,4 +24,39 @@ export function parseRoute (pathname, prefix = config.http.prefix) {
   }
 
   return { kind: 'notfound' }
+}
+
+export async function route (request, ctx) {
+  const url = new URL(request.url)
+  const parsed = parseRoute(url.pathname)
+
+  switch (parsed.kind) {
+    case 'legacy': {
+      const q = url.searchParams
+      return resolve(request, ctx, {
+        server: q.get('server') || 'netease',
+        type: q.get('type') || 'search',
+        id: q.get('id') || 'hello',
+        token: q.get('token') || q.get('auth') || 'token'
+      })
+    }
+    case 'search':
+      return resolve(request, ctx, {
+        server: parsed.server,
+        type: 'search',
+        id: url.searchParams.get('keywords') || 'hello',
+        token: url.searchParams.get('token') || url.searchParams.get('auth') || 'token'
+      })
+    case 'resource':
+      return resolve(request, ctx, {
+        server: parsed.server,
+        type: parsed.type,
+        id: parsed.id,
+        token: url.searchParams.get('token') || url.searchParams.get('auth') || 'token'
+      })
+    case 'demo':
+      return demoService(request)
+    default:
+      return new Response('Not Found', { status: 404 })
+  }
 }
