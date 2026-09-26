@@ -22,6 +22,16 @@ const METING_METHODS = {
   pic: 'pic'
 }
 
+export function buildItem (server, x) {
+  return {
+    title: x.name,
+    author: x.artist.join(' / '),
+    url: `${config.meting.url}/api?server=${server}&type=url&id=${x.url_id}&auth=${auth(server, 'url', x.url_id)}`,
+    pic: `${config.meting.url}/api?server=${server}&type=pic&id=${x.pic_id}&auth=${auth(server, 'pic', x.pic_id)}`,
+    lrc: `${config.meting.url}/api?server=${server}&type=lrc&id=${x.lyric_id}&auth=${auth(server, 'lrc', x.lyric_id)}`
+  }
+}
+
 export async function resolve (request, ctx, { server, type, id, token }) {
   // 1. 校验参数
   if (!['netease', 'tencent', 'kugou', 'baidu', 'kuwo'].includes(server)) {
@@ -123,15 +133,7 @@ export async function resolve (request, ctx, { server, type, id, token }) {
     })
   }
 
-  return Response.json(data.map(x => {
-    return {
-      title: x.name,
-      author: x.artist.join(' / '),
-      url: `${config.meting.url}/api?server=${server}&type=url&id=${x.url_id}&auth=${auth(server, 'url', x.url_id)}`,
-      pic: `${config.meting.url}/api?server=${server}&type=pic&id=${x.pic_id}&auth=${auth(server, 'pic', x.pic_id)}`,
-      lrc: `${config.meting.url}/api?server=${server}&type=lrc&id=${x.lyric_id}&auth=${auth(server, 'lrc', x.lyric_id)}`
-    }
-  }), {
+  return Response.json(data.map(x => buildItem(server, x)), {
     headers: { 'cache-control': 'public, max-age=300, stale-while-revalidate=3600' }
   })
 }

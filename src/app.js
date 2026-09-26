@@ -27,6 +27,9 @@ export function createApp () {
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: CORS_HEADERS })
     }
+    if (request.method !== 'GET') {
+      return addCorsHeaders(new Response('Not Found', { status: 404 }))
+    }
     return addCorsHeaders(await handler(request))
   }
 }
