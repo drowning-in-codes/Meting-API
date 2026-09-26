@@ -1,11 +1,12 @@
 # Meting-API
 
-基于 Hono.js 的多平台音乐 API 代理服务,封装 [@meting/core](https://www.npmjs.com/package/@meting/core) 提供的统一音乐 API。
+基于原生 Web 标准 `Request`/`Response` 的多平台音乐 API 代理服务,可同时部署为 Bun 常驻进程或 Vercel Serverless 函数,封装 [@meting/core](https://www.npmjs.com/package/@meting/core) 提供的统一音乐 API。
 
 ## 特性
 
 - 🎵 支持多个音乐平台:网易云、QQ音乐、酷狗、百度、酷我
-- 🚀 基于 Hono.js 高性能框架
+- 🚀 基于原生 Web 标准 Request/Response,零框架依赖
+- ☁️ Vercel 一键部署
 - 💾 内置 LRU 缓存机制,减少上游 API 调用
 - 🔐 HMAC-SHA1 令牌鉴权,保护敏感接口
 - 🐳 Docker 部署支持
@@ -34,17 +35,17 @@
 
 ```bash
 # 安装依赖
-yarn install
+bun install
 
 # 配置环境变量(可选)
 cp .env.example .env
 # 编辑 .env 文件配置参数
 
 # 开发模式(热重载)
-yarn dev
+bun run dev
 
 # 生产模式
-yarn start
+bun run start
 ```
 
 ### Docker 部署
@@ -77,6 +78,15 @@ services:
     restart: unless-stopped
 ```
 
+### Vercel 部署
+
+项目内置 Vercel Serverless 适配层,`api/` 目录会被自动识别为 Serverless Functions(Node.js Runtime,非 Edge)。
+
+1. 将仓库导入 Vercel(或使用 CLI `vercel deploy`)
+2. 配置环境变量:
+   - `METING_TOKEN`(建议必填):HMAC 签名密钥
+   - `METING_URL`(可选):公网访问地址,未设置时自动回退到 `https://${VERCEL_URL}`(`VERCEL_URL` 由 Vercel 自动注入,无需手动配置)
+
 ## HTTPS 配置
 
 ### 开发环境
@@ -98,7 +108,7 @@ openssl req -x509 -nodes -days 365 \
 HTTPS_ENABLED=true \
 SSL_KEY_PATH=certs/local.key \
 SSL_CERT_PATH=certs/local.crt \
-yarn start
+bun run start
 ```
 
 ### 生产环境
@@ -162,6 +172,23 @@ docker run -d \
 ```
 GET /api
 ```
+
+### RESTful 接口
+
+除了下述传统接口,项目还提供 RESTful 风格路由:
+
+```
+GET /api/:server/search?keywords=xxx
+GET /api/:server/song/:id
+GET /api/:server/album/:id
+GET /api/:server/artist/:id
+GET /api/:server/playlist/:id
+GET /api/:server/lrc/:id    (需 token)
+GET /api/:server/url/:id     (需 token)
+GET /api/:server/pic/:id     (需 token)
+```
+
+其中 `:server` 取值为 `netease`/`tencent`/`kugou`/`baidu`/`kuwo`。传统接口 `GET /api?server=&type=&id=` 仍然可用(演示页与 Meting.js 依赖它)。
 
 ### 请求参数
 
@@ -334,20 +361,26 @@ API 返回标准 HTTP 状态码:
 
 ### 代码规范
 
-项目使用 ESLint Standard 规范:
+项目使用 oxlint 进行代码检查:
 
 ```bash
-yarn lint
+bun run lint
+```
+
+运行单元测试:
+
+```bash
+bun test
 ```
 
 ### 技术栈
 
-- **运行时**: Node.js 22+ (ES Module)
-- **框架**: [Hono](https://hono.dev/) 4.x
-- **核心库**: [@meting/core](https://www.npmjs.com/package/@meting/core) 1.5+
+- **运行时**: Bun(本地常驻进程)+ Vercel Node.js Runtime(Serverless,非 Edge)
+- **HTTP 服务**: 原生 fetch API(Web 标准 `Request`/`Response`,无框架)
+- **核心库**: [@meting/core](https://www.npmjs.com/package/@meting/core) 1.6+
 - **缓存**: lru-cache 11.x
 - **日志**: pino (JSON 格式)
-- **加密**: hash.js (HMAC-SHA1)
+- **加密**: Node.js 内置 `node:crypto` (HMAC-SHA1)
 
 ## 许可证
 
