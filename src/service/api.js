@@ -1,7 +1,7 @@
 import Meting from '@meting/core'
-import { createHmac } from 'node:crypto'
 import { HTTPException } from '../utils/http-exception.js'
 import config from '../config.js'
+import { auth } from './auth.js'
 import { format as lyricFormat } from '../utils/lyric.js'
 import { readCookieFile, isAllowedHost } from '../utils/cookie.js'
 import { LRUCache } from 'lru-cache'
@@ -134,8 +134,4 @@ export default async (request, ctx) => {
       lrc: `${config.meting.url}/api?server=${server}&type=lrc&id=${x.lyric_id}&auth=${auth(server, 'lrc', x.lyric_id)}`
     }
   }))
-}
-
-const auth = (server, type, id) => {
-  return createHmac('sha1', config.meting.token).update(`${server}${type}${id}`).digest('hex')
 }
