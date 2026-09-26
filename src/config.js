@@ -20,7 +20,8 @@ export default {
     certPath: process.env.SSL_CERT_PATH || ''
   },
   meting: {
-    url: process.env.METING_URL || '',
+    url: process.env.METING_URL
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : ''),
     token: process.env.METING_TOKEN || 'token',
     cookie: {
       allowHosts: process.env.METING_COOKIE_ALLOW_HOSTS
