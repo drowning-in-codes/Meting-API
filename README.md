@@ -12,6 +12,17 @@
 - 🐳 Docker 部署支持
 - 📝 结构化 JSON 日志输出
 
+## 改造说明
+
+本项目由单进程 Bun 服务改造为「Bun 常驻进程 + Vercel Serverless」双适配架构:
+
+- 请求处理逻辑抽为框架无关的 `createApp()`(`src/app.js`),Bun 与 Vercel 共用同一 handler
+- 新增 RESTful 路径路由(`src/router.js`),传统查询串接口 `/api?server=&type=&id=` 完整保留
+- 鉴权逻辑抽为纯函数 `src/service/auth.js`(HMAC-SHA1)
+- 新增 Vercel 入口 `api/index.js`、`api/[...path].js` 与 `vercel.json`
+- 列表 / 歌词 / 资源响应附带 `Cache-Control`,便于 CDN 边缘缓存
+- 新增单元测试(`bun test`):鉴权、路由解析、歌词合并、核心契约
+
 ## 支持的平台
 
 | 平台 | server 参数 | 说明 |
@@ -84,8 +95,16 @@ services:
 
 1. 将仓库导入 Vercel(或使用 CLI `vercel deploy`)
 2. 配置环境变量:
-   - `METING_TOKEN`(建议必填):HMAC 签名密钥
+   - `METING_TOKEN`(**必填**):HMAC 签名密钥。默认值为 `token`,公开部署务必改掉,否则任何人都能算出 token
    - `METING_URL`(可选):公网访问地址,未设置时自动回退到 `https://${VERCEL_URL}`(`VERCEL_URL` 由 Vercel 自动注入,无需手动配置)
+
+**部署须知:**
+
+- **依赖安装**:仓库只提交了 `bun.lock`,Vercel 默认用 `npm install`(依赖 `^` 范围可能与本地 Bun 版本不一致)。建议二选一:
+  - 在 `vercel.json` 添加 `"installCommand": "bun install"`(若启用 Bun)
+  - 或运行一次 `npm install --package-lock-only` 提交 `package-lock.json`
+- **Cookie**:Serverless 环境只支持环境变量 `METING_COOKIE_{SERVER}`,`cookie/` 目录文件方式不生效
+- **缓存**:LRU 缓存每实例独立、冷启动后重建;列表 / url / pic / lrc 响应已附带 `Cache-Control`,可借助 Vercel CDN 边缘缓存减少上游调用
 
 ## HTTPS 配置
 
