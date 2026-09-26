@@ -157,7 +157,7 @@ Expected: FAIL,报 `Cannot find module '../src/router.js'`
 - [ ] **Step 3: 创建 `src/router.js`(仅 parseRoute)**
 
 ```js
-import config from '../config.js'
+import config from './config.js'
 
 /**
  * 纯函数:把请求路径解析为路由描述,供 router 与测试复用。
@@ -439,7 +439,7 @@ export async function route (request, ctx) {
 }
 ```
 
-注意:`router.js` 顶部 import 区当前只有 `import config from '../config.js'`,需保持并在其下追加上述两个 import(ES Module 的 import 必须放文件顶部,合并为一份 import 块)。
+注意:`router.js` 顶部 import 区当前只有 `import config from './config.js'`,需保持并在其下追加上述两个 import(ES Module 的 import 必须放文件顶部,合并为一份 import 块)。
 
 - [ ] **Step 3: 创建 `src/app.js`**
 
