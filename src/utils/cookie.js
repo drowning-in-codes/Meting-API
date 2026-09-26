@@ -6,6 +6,7 @@ import config from '../config.js'
 // Cookie 缓存
 const cookieCache = new Map()
 const COOKIE_TTL = 1000 * 60 * 5 // 5分钟缓存过期
+const isServerless = process.env.VERCEL === '1'
 
 // 启动文件监听
 const cookieDir = resolve(process.cwd(), 'cookie')
@@ -26,7 +27,7 @@ async function startWatcher () {
 }
 
 // 启动监听（仅启动一次）
-if (!watcher) {
+if (!isServerless && !watcher) {
   startWatcher().catch(() => {})
 }
 
@@ -55,6 +56,11 @@ export async function readCookieFile (server) {
       timestamp: now
     })
     return value
+  }
+
+  if (isServerless) {
+    cookieCache.set(server, { value: '', timestamp: now })
+    return ''
   }
 
   // 从文件读取
