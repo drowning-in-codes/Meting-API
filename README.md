@@ -342,11 +342,11 @@ cookie/
 
 ### 方式三:内置客户端指纹 + MUSIC_U 环境变量
 
-项目在 `src/utils/cookie.js` 内置了网易云的客户端指纹(`os`/`osver`/`appver`/`channel` 等公开信息),而登录凭证 `MUSIC_U` 从环境变量读取,二者自动拼成完整 Cookie:
+项目在 `src/utils/cookie.js` 内置了网易云的客户端指纹(`os`/`appver`/`channel` 等公开信息),而登录凭证 `MUSIC_U` 从环境变量读取,二者自动拼成完整 Cookie:
 
 ```js
 const DEFAULT_COOKIES = {
-  netease: 'os=android; ...; MUSIC_U={MUSIC_U}; __remember_me=true'
+  netease: 'os=pc; ...; MUSIC_U={MUSIC_U}; __remember_me=true'
 }
 ```
 

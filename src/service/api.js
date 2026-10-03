@@ -65,20 +65,27 @@ export async function resolve (request, ctx, { server, type, id, token }) {
     }
 
     const method = METING_METHODS[type]
-    let response
+    let degraded = false
     try {
-      response = await meting[method](id)
+      data = JSON.parse(await meting[method](id))
     } catch {
-      throw new HTTPException(500, { message: '上游 API 调用失败' })
+      // 只有网络层故障（meting.error 非空：超时/DNS/连接失败）才视为真正的上游故障
+      if (meting.error) {
+        throw new HTTPException(500, { message: '上游 API 调用失败' })
+      }
+      // 上游返回了非预期格式（如 -460 风控、资源下架 404、字段缺失），
+      // 按空结果降级处理，避免把上游异常误报成本服务 500。
+      degraded = true
+      data = type === 'lrc'
+        ? { lyric: '', tlyric: '' }
+        : (type === 'url' || type === 'pic') ? { url: '' } : []
     }
-    try {
-      data = JSON.parse(response)
-    } catch {
-      throw new HTTPException(500, { message: '上游 API 返回格式异常' })
+    // 降级结果不写缓存，避免短暂的风控/上游异常被缓存成「永久空结果」
+    if (!degraded) {
+      cache.set(cacheKey, data, {
+        ttl: type === 'url' ? 1000 * 60 * 10 : 1000 * 60 * 60
+      })
     }
-    cache.set(cacheKey, data, {
-      ttl: type === 'url' ? 1000 * 60 * 10 : 1000 * 60 * 60
-    })
   }
 
   // 4. 组装结果

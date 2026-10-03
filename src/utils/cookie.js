@@ -9,12 +9,12 @@ const COOKIE_TTL = 1000 * 60 * 5 // 5分钟缓存过期
 const isServerless = process.env.VERCEL === '1'
 
 // 内置兜底 Cookie 模板：当未配置 METING_COOKIE_{SERVER} 时使用。
-// 客户端指纹（os/osver/appver/channel）为公开信息，保留在代码里；
+// 客户端指纹（os/appver/channel）为公开信息，保留在代码里；
 // 登录凭证 MUSIC_U 从环境变量读取，避免把密钥写死在代码里。
-// 注意：指纹必须与 @meting/core 内建的移动端 User-Agent（NeteaseMusic/8.7.01 Android）保持一致，
-// 否则网易云会返回 -460「检测到网络环境存在风险」，导致所有请求上游调用失败（500）。
+// 注意：os 用 pc（与浏览器登录产生的 MUSIC_U 同源）；appver 必须是网易云当前仍在用的较新版本，
+// 若用旧版 appver（如历史 meting.js 的 2.0.3.131777）会被网易云风控拒绝，返回 -460 导致 500。
 const DEFAULT_COOKIES = {
-  netease: 'os=android; osver=android; appver=8.7.01; channel=netease; MUSIC_U={MUSIC_U}; __remember_me=true'
+  netease: 'os=pc; appver=8.9.70; channel=netease; MUSIC_U={MUSIC_U}; __remember_me=true'
 }
 
 // 启动文件监听
