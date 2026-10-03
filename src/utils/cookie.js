@@ -8,6 +8,13 @@ const cookieCache = new Map()
 const COOKIE_TTL = 1000 * 60 * 5 // 5分钟缓存过期
 const isServerless = process.env.VERCEL === '1'
 
+// 内置兜底 Cookie 模板：当未配置 METING_COOKIE_{SERVER} 时使用。
+// 客户端指纹（os/osver/appver/channel）为公开信息，保留在代码里；
+// 登录凭证 MUSIC_U 从环境变量读取，避免把密钥写死在代码里。
+const DEFAULT_COOKIES = {
+  netease: 'os=pc; osver=Microsoft-Windows-10-Professional-build-10586-64bit; appver=2.0.3.131777; channel=netease; MUSIC_U={MUSIC_U}; __remember_me=true'
+}
+
 // 启动文件监听
 const cookieDir = resolve(process.cwd(), 'cookie')
 let watcher = null
@@ -56,6 +63,17 @@ export async function readCookieFile (server) {
       timestamp: now
     })
     return value
+  }
+
+  // 未配置 METING_COOKIE_{SERVER} 时，用内置客户端指纹 + 环境变量 MUSIC_U 拼出兜底 Cookie
+  const template = DEFAULT_COOKIES[server]
+  if (template) {
+    const musicU = process.env.MUSIC_U
+    if (musicU) {
+      const value = template.replace('{MUSIC_U}', musicU.trim())
+      cookieCache.set(server, { value, timestamp: now })
+      return value
+    }
   }
 
   if (isServerless) {

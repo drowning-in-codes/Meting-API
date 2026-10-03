@@ -179,6 +179,7 @@ docker run -d \
 | `METING_TOKEN` | HMAC 签名密钥 | `token` |
 | `METING_COOKIE_ALLOW_HOSTS` | 允许使用 cookie 的 referrer 域名白名单(逗号分隔) | `` (空,不限制) |
 | `METING_COOKIE_NETEASE` | 网易云音乐 Cookie | - |
+| `MUSIC_U` | 网易云登录凭证(浏览器 Cookie 中的 MUSIC_U 值,与内置客户端指纹拼成兜底 Cookie) | - |
 | `METING_COOKIE_TENCENT` | QQ音乐 Cookie | - |
 | `METING_COOKIE_KUGOU` | 酷狗音乐 Cookie | - |
 | `METING_COOKIE_BAIDU` | 百度音乐 Cookie | - |
@@ -309,7 +310,7 @@ const token = generateToken('netease', 'url', '123456');
 
 ## Cookie 配置
 
-部分音乐平台的 API 需要登录态才能访问完整数据。可以通过以下两种方式配置 Cookie:
+部分音乐平台的 API 需要登录态才能访问完整数据。可以通过以下方式配置 Cookie:
 
 ### 方式一:环境变量(推荐)
 
@@ -339,10 +340,23 @@ cookie/
 
 每个文件存储对应平台的 Cookie 字符串。
 
+### 方式三:内置客户端指纹 + MUSIC_U 环境变量
+
+项目在 `src/utils/cookie.js` 内置了网易云的客户端指纹(`os`/`osver`/`appver`/`channel` 等公开信息),而登录凭证 `MUSIC_U` 从环境变量读取,二者自动拼成完整 Cookie:
+
+```js
+const DEFAULT_COOKIES = {
+  netease: 'os=pc; ...; MUSIC_U={MUSIC_U}; __remember_me=true'
+}
+```
+
+使用时只需设置环境变量 `MUSIC_U=你的网易云登录凭证`(浏览器 Cookie 里的 `MUSIC_U` 值),即可解析 VIP 歌曲,无需把密钥写进代码。
+
 ### Cookie 优先级
 
-1. 优先从环境变量读取(`METING_COOKIE_NETEASE` 等)
-2. 环境变量不存在时从文件读取(`cookie/netease` 等)
+1. 环境变量 `METING_COOKIE_NETEASE`(完整 Cookie,最高优先)
+2. 环境变量 `MUSIC_U` + 内置客户端指纹(未配 `METING_COOKIE_NETEASE` 时生效)
+3. 文件 `cookie/netease`(兜底,仅本地/非 Serverless 环境)
 
 ### Cookie 缓存
 

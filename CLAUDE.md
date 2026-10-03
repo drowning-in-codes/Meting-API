@@ -96,9 +96,10 @@ LRU 缓存(lru-cache),最多 1000 条,默认 TTL 30 秒:
 
 ### Cookie 管理
 
-Cookie 支持两种来源（优先级从高到低）:
-1. 环境变量 `METING_COOKIE_{SERVER}`（如 `METING_COOKIE_NETEASE`）
-2. 文件系统 `./cookie/{server}`
+Cookie 支持三种来源（优先级从高到低）:
+1. 环境变量 `METING_COOKIE_{SERVER}`（如 `METING_COOKIE_NETEASE`，完整 Cookie）
+2. 环境变量 `MUSIC_U` + 内置客户端指纹（`DEFAULT_COOKIES.netease`，MUSIC_U 从环境变量读取）
+3. 文件系统 `./cookie/{server}`
 
 通过 `METING_COOKIE_ALLOW_HOSTS` 限制哪些 referrer 来源可使用 Cookie。
 
@@ -117,6 +118,7 @@ Cookie 支持两种来源（优先级从高到低）:
 | `METING_TOKEN` | HMAC 签名密钥 | `token` |
 | `METING_COOKIE_ALLOW_HOSTS` | Cookie referrer 白名单（逗号分隔） | `` (不限制) |
 | `METING_COOKIE_{SERVER}` | 各平台 Cookie（NETEASE/TENCENT/KUGOU/BAIDU/KUWO） | - |
+| `MUSIC_U` | 网易云登录凭证（浏览器 Cookie 中的 MUSIC_U 值，与内置客户端指纹拼成兜底 Cookie） | - |
 
 ## 开发注意事项
 
