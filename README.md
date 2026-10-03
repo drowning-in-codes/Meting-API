@@ -346,7 +346,7 @@ cookie/
 
 ```js
 const DEFAULT_COOKIES = {
-  netease: 'os=pc; ...; MUSIC_U={MUSIC_U}; __remember_me=true'
+  netease: 'os=android; ...; MUSIC_U={MUSIC_U}; __remember_me=true'
 }
 ```
 

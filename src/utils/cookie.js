@@ -11,8 +11,10 @@ const isServerless = process.env.VERCEL === '1'
 // 内置兜底 Cookie 模板：当未配置 METING_COOKIE_{SERVER} 时使用。
 // 客户端指纹（os/osver/appver/channel）为公开信息，保留在代码里；
 // 登录凭证 MUSIC_U 从环境变量读取，避免把密钥写死在代码里。
+// 注意：指纹必须与 @meting/core 内建的移动端 User-Agent（NeteaseMusic/8.7.01 Android）保持一致，
+// 否则网易云会返回 -460「检测到网络环境存在风险」，导致所有请求上游调用失败（500）。
 const DEFAULT_COOKIES = {
-  netease: 'os=pc; osver=Microsoft-Windows-10-Professional-build-10586-64bit; appver=2.0.3.131777; channel=netease; MUSIC_U={MUSIC_U}; __remember_me=true'
+  netease: 'os=android; osver=android; appver=8.7.01; channel=netease; MUSIC_U={MUSIC_U}; __remember_me=true'
 }
 
 // 启动文件监听
